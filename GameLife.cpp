@@ -100,8 +100,14 @@ void generation_two_dim_array(char** arr, int rows, int cols)
 		{
 			std::string check_all = std::to_string(arr[i - 1][j - 1]) + std::to_string(arr[i - 1][j]) + std::to_string(arr[i][j - 1]) + std::to_string(arr[i + 1][j + 1]) + std::to_string(arr[i + 1][j]) + std::to_string(arr[i][j + 1]) + std::to_string(arr[i - 1][j + 1]) + std::to_string(arr[i + 1][j - 1]);
 			int cnt = std::count(check_all.begin(), check_all.end(), '*');
-			if (cnt == 3) {	
+			if (cnt == 3 && arr[i][j] == '-') {
 				arr[i][j] = '*';
+			}
+			else if ((cnt == 3 || cnt == 2) && arr[i][j] == '*') {
+				arr[i][j] = '*';
+			}
+			else {
+				arr[i][j] = '-';
 			}
 		}
 	}
@@ -110,8 +116,14 @@ void generation_two_dim_array(char** arr, int rows, int cols)
 		int j = 0;
 		std::string check_lt = std::to_string(arr[i + 1][j + 1]) + std::to_string(arr[i + 1][j]) + std::to_string(arr[i][j + 1]);
 		int cnt = std::count(check_lt.begin(), check_lt.end(), '*');
-		if (cnt == 3) {
+		if (cnt == 3 && arr[i][j] == '-') {
 			arr[i][j] = '*';
+		}
+		else if ((cnt == 3 || cnt == 2) && arr[i][j] == '*') {
+			arr[i][j] = '*';
+		}
+		else {
+			arr[i][j] = '-';
 		}
 	}
 	for (int i = 0; i < rows-1; ++i)//right col
@@ -119,8 +131,14 @@ void generation_two_dim_array(char** arr, int rows, int cols)
 		int j = cols;
 		std::string check_rt = std::to_string(arr[i][j - 1]) + std::to_string(arr[i + 1][j-1]) + std::to_string(arr[i+1][j]);
 		int cnt = std::count(check_rt.begin(), check_rt.end(), '*');
-		if (cnt == 3) {
+		if (cnt == 3 && arr[i][j] == '-') {
 			arr[i][j] = '*';
+		}
+		else if ((cnt == 3 || cnt == 2) && arr[i][j] == '*') {
+			arr[i][j] = '*';
+		}
+		else {
+			arr[i][j] = '-';
 		}
 	}
 	for (int j = 1; j < cols-1; ++j)//high col
@@ -128,8 +146,14 @@ void generation_two_dim_array(char** arr, int rows, int cols)
 		int i = 0;
 		std::string check_high = std::to_string(arr[i][j - 1]) + std::to_string(arr[i + 1][j-1]) + std::to_string(arr[i+1][j]) + std::to_string(arr[i + 1][j + 1]) + std::to_string(arr[i][j + 1]);
 		int cnt = std::count(check_high.begin(), check_high.end(), '*');
-		if (cnt == 3) {
+		if (cnt == 3 && arr[i][j] == '-') {
 			arr[i][j] = '*';
+		}
+		else if ((cnt == 3 || cnt == 2) && arr[i][j] == '*') {
+			arr[i][j] = '*';
+		}
+		else {
+			arr[i][j] = '-';
 		}
 	}
 	for (int j = 1; j < cols-1; ++j)//low col
@@ -137,8 +161,15 @@ void generation_two_dim_array(char** arr, int rows, int cols)
 		int i = rows;
 		std::string check_low = std::to_string(arr[i][j - 1]) + std::to_string(arr[i - 1][j-1]) + std::to_string(arr[i-1][j]) + std::to_string(arr[i - 1][j + 1]) + std::to_string(arr[i][j + 1]);
 		int cnt = std::count(check_low.begin(), check_low.end(), '*');
-		if (cnt == 3) {
+		if (cnt == 3 && arr[i][j] == '-') {
 			arr[i][j] = '*';
+		}
+		else if ((cnt == 3 || cnt == 2) && arr[i][j] == '*') {
+			arr[i][j] = '*';
+		}
+		else {
+			arr[i][j] = '-';
 		}
 	}
 }
+
