@@ -2,16 +2,19 @@
 #include <fstream>
 #include <algorithm>
 #include <string>
+#include <cstdlib>
+#include <windows.h>
 
 char** create_two_dim_array(int rows, int cols);
 void fill_two_dim_array(char** arr, int* arrR, int rows, int cols, int cnt1);
-void print_two_dim_array(char** arr, int rows, int cols);
+void print_two_dim_array(char** arr, int rows, int cols, int& generationCnt, int cnt1);
 void delete_two_dim_array(char** arr, int rows, int cols);
-
-void generation_two_dim_array(char** arr, int rows, int cols);
+int generation_two_dim_array(char** arr, int* arrR, int rows, int cols);
+int compare_two_two_dim_array(char** arr, int* arrR, int* arrC, int rows, int cols, int generationCnt, int cnt1);
 
 int main()
 {
+	int generationCnt{ 1 };
 	int rows{}, cols{};
 
 	std::ifstream ifile1("GL.txt");
@@ -21,24 +24,41 @@ int main()
 	ifile1.close();
 
 	int num, cnt1{ 0 };
-	int* arrR = new int[std::max(rows, cols)];
+	int const size = rows * cols;
+	int* arrR = new int[size * 2];
+	int* arrC = new int[size * 2];
 
-	std::ifstream ifile2("GL.txt");
+	std::ifstream ifile2("GL.txt");	
 	if (ifile2.is_open()) {
 		ifile2 >> rows >> cols;
 		while (ifile2 >> num) {
 			arrR[cnt1] = num;
-			cnt1 += 1;
+			arrC[cnt1] = num;
+			cnt1++;
 		}
 	}
 	ifile2.close();
+	
+
 
 	char** arr = create_two_dim_array(rows, cols);
 	fill_two_dim_array(arr, arrR, rows, cols, cnt1);
-	generation_two_dim_array(arr, rows, cols);
-	print_two_dim_array(arr, rows, cols);
+	print_two_dim_array(arr, rows, cols, generationCnt, cnt1);
+	while (true)
+	{
+		Sleep(2000);
+		cnt1 = generation_two_dim_array(arr, arrR, rows, cols);
+		if (compare_two_two_dim_array(arr, arrR, arrC, rows, cols, generationCnt, cnt1) == 1) break;
+		for (int i = 0; i < cnt1 * 2; i++)
+		{
+			arrC[i] = arrR[i];
+		}
+		std::system("cls");
+		print_two_dim_array(arr, rows, cols, generationCnt, cnt1);
+	}
 	delete_two_dim_array(arr, rows, cols);
 	delete[] arrR;
+	delete[] arrC;
 
 	return 0;
 }
@@ -53,6 +73,7 @@ char** create_two_dim_array(int rows, int cols)
 		return arr;
 }
 
+
 void fill_two_dim_array(char** arr, int* arrR, int rows, int cols, int cnt1)
 {
 
@@ -63,7 +84,7 @@ void fill_two_dim_array(char** arr, int* arrR, int rows, int cols, int cnt1)
 			arr[i][j] = '-';
 		}
 	}
-	for (int k = 0; k < cnt1-1; k += 2) {
+	for (int k = 0; k < cnt1; k += 2) {
 		int row = arrR[k];
 		int col = arrR[k + 1];
 		arr[row][col] = '*';
@@ -71,7 +92,7 @@ void fill_two_dim_array(char** arr, int* arrR, int rows, int cols, int cnt1)
 
 }
 
-void print_two_dim_array(char** arr, int rows, int cols)
+void print_two_dim_array(char** arr, int rows, int cols, int& generationCnt, int cnt1)
 {
 	for (int i = 0; i < rows; ++i)
 	{
@@ -81,6 +102,8 @@ void print_two_dim_array(char** arr, int rows, int cols)
 		}
 		std::cout << '\n';
 	}
+	std::cout << "Generation: " << generationCnt << " Alive cells: " << cnt1/2 << '\n';
+	generationCnt++;
 }
 
 void delete_two_dim_array(char** arr, int rows, int cols)
@@ -92,84 +115,81 @@ void delete_two_dim_array(char** arr, int rows, int cols)
 	delete[] arr;
 }
 
-void generation_two_dim_array(char** arr, int rows, int cols)
+int generation_two_dim_array(char** arr, int* arrR, int rows, int cols)
 {
-	for (int i = 1; i < rows-1; ++i)
+	char** arrJ = create_two_dim_array(rows, cols);
+	int cntR = 0; 
+	for (int i = 0; i < rows; ++i)
 	{
-		for (int j = 1; j < cols-1; ++j)
+		for (int j = 0; j < cols; ++j)
 		{
-			std::string check_all = std::to_string(arr[i - 1][j - 1]) + std::to_string(arr[i - 1][j]) + std::to_string(arr[i][j - 1]) + std::to_string(arr[i + 1][j + 1]) + std::to_string(arr[i + 1][j]) + std::to_string(arr[i][j + 1]) + std::to_string(arr[i - 1][j + 1]) + std::to_string(arr[i + 1][j - 1]);
-			int cnt = std::count(check_all.begin(), check_all.end(), '*');
-			if (cnt == 3 && arr[i][j] == '-') {
-				arr[i][j] = '*';
+			int cnt = 0;
+			for (int k = -1; k <= 1; ++k)
+			{
+				for (int m = -1; m <= 1; ++m)
+				{
+					if (k == 0 && m == 0) continue;
+					int r = i + k;
+					int c = j + m;
+
+					if (r >= 0 && r < rows && c >= 0 && c < cols)
+					{
+						if (arr[r][c] == '*') {
+							cnt++;
+						}
+					}
+				}
 			}
-			else if ((cnt == 3 || cnt == 2) && arr[i][j] == '*') {
-				arr[i][j] = '*';
+			if (arr[i][j] == '-' && cnt == 3) {
+				arrJ[i][j] = '*';
+			}
+			else if (arr[i][j] == '*' && (cnt == 2 || cnt == 3)) {
+				arrJ[i][j] = '*';
 			}
 			else {
-				arr[i][j] = '-';
+				arrJ[i][j] = '-';
+			}
+			if (arrJ[i][j] == '*') {
+				arrR[cntR++] = i;
+				arrR[cntR++] = j;
 			}
 		}
 	}
-	for (int i = 0; i < rows-1; ++i)//left col
+
+	for (int i = 0; i < rows; ++i)
 	{
-		int j = 0;
-		std::string check_lt = std::to_string(arr[i + 1][j + 1]) + std::to_string(arr[i + 1][j]) + std::to_string(arr[i][j + 1]);
-		int cnt = std::count(check_lt.begin(), check_lt.end(), '*');
-		if (cnt == 3 && arr[i][j] == '-') {
-			arr[i][j] = '*';
-		}
-		else if ((cnt == 3 || cnt == 2) && arr[i][j] == '*') {
-			arr[i][j] = '*';
-		}
-		else {
-			arr[i][j] = '-';
+		for (int j = 0; j < cols; ++j)
+		{
+			arr[i][j] = arrJ[i][j];
 		}
 	}
-	for (int i = 0; i < rows-1; ++i)//right col
-	{
-		int j = cols;
-		std::string check_rt = std::to_string(arr[i][j - 1]) + std::to_string(arr[i + 1][j-1]) + std::to_string(arr[i+1][j]);
-		int cnt = std::count(check_rt.begin(), check_rt.end(), '*');
-		if (cnt == 3 && arr[i][j] == '-') {
-			arr[i][j] = '*';
-		}
-		else if ((cnt == 3 || cnt == 2) && arr[i][j] == '*') {
-			arr[i][j] = '*';
-		}
-		else {
-			arr[i][j] = '-';
-		}
-	}
-	for (int j = 1; j < cols-1; ++j)//high col
-	{
-		int i = 0;
-		std::string check_high = std::to_string(arr[i][j - 1]) + std::to_string(arr[i + 1][j-1]) + std::to_string(arr[i+1][j]) + std::to_string(arr[i + 1][j + 1]) + std::to_string(arr[i][j + 1]);
-		int cnt = std::count(check_high.begin(), check_high.end(), '*');
-		if (cnt == 3 && arr[i][j] == '-') {
-			arr[i][j] = '*';
-		}
-		else if ((cnt == 3 || cnt == 2) && arr[i][j] == '*') {
-			arr[i][j] = '*';
-		}
-		else {
-			arr[i][j] = '-';
-		}
-	}
-	for (int j = 1; j < cols-1; ++j)//low col
-	{
-		int i = rows;
-		std::string check_low = std::to_string(arr[i][j - 1]) + std::to_string(arr[i - 1][j-1]) + std::to_string(arr[i-1][j]) + std::to_string(arr[i - 1][j + 1]) + std::to_string(arr[i][j + 1]);
-		int cnt = std::count(check_low.begin(), check_low.end(), '*');
-		if (cnt == 3 && arr[i][j] == '-') {
-			arr[i][j] = '*';
-		}
-		else if ((cnt == 3 || cnt == 2) && arr[i][j] == '*') {
-			arr[i][j] = '*';
-		}
-		else {
-			arr[i][j] = '-';
-		}
-	}
+	delete_two_dim_array(arrJ, rows, cols);
+	return cntR;
 }
 
+int compare_two_two_dim_array(char** arr, int* arrR, int* arrC, int rows, int cols, int generationCnt, int cnt1) {
+	if (cnt1 == 0) {
+		print_two_dim_array(arr, rows, cols, generationCnt, cnt1);
+		std::cout << "All cells are dead. Game over." << '\n';
+		return 1;
+	}
+	bool flag = true;
+	int i = 0;
+	for (int i = 0; i < cnt1; i++)
+	{
+		if (arrR[i] != arrC[i])
+		{
+			flag = false;
+			break;
+		}
+	}
+	if (flag == true)
+	{
+		print_two_dim_array(arr, rows, cols, generationCnt, cnt1);
+		std::cout << "The world has stagnated. Game over." << '\n';
+		return 1;
+	}
+
+	return 0;
+	
+}
